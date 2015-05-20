@@ -2,18 +2,18 @@ grammar rp2c;
 
 //---------------------------------------------
 program : program_head program_body'.';
-program_head : 'program' ID '(' identifier_list ')';
+program_head : 'program' ID '(' identifier_list ')' ';';
 identifier_list : identifier_list','ID | ID;
 program_body: declarations subprogram_declarations compound_statement;
 declarations: 'var' declaration ';' | ;
 declaration: declaration ';' identifier_list ':'  type_
-  | identifier_list ':' type_;
+    | identifier_list ':' type_;
 type_ : standard_type
     | 'array[' DIGITS '..' DIGITS ']' 'of' standard_type
     | 'record' declaration 'end';
 standard_type : 'integer' | 'real' | 'Boolean' | DIGITS '..' DIGITS;
 
-subprogram_declarations : subprogram_declarations subprogram_declaration | ;
+subprogram_declarations : subprogram_declarations subprogram_declaration ';' | ;
 subprogram_declaration : subprogram_head declarations compound_statement;
 subprogram_head : 'function' ID arguments ':' standard_type ';'
                     | 'procedure' ID arguments ';' ;
@@ -28,6 +28,7 @@ statement: variable ASSIGNOP expression
             |procedure_call_statement
             |compound_statement
             |'if' expression 'then' statement ('else' statement)
+            |'while' expression 'do' statement
             |'read(' identifier_list ')'
             |'write(' expr_list ')';
 variable : ID | ID'['expression']';
@@ -45,17 +46,19 @@ factor : ID
         |'true'
         |'false';
 sign : '+' | '-';
+
 //--------------------------------------------------------------------------------
-DIGIT : [0-9];
-LETTER : [a-zA-Z];
+fragment DIGIT : [0-9];
+fragment LETTER : [a-zA-Z];
 ID : LETTER(LETTER|DIGIT)*;
 DIGITS : [0-9]+;
-OPTIONAL_FRACTION: '.'DIGITS| ;
-OPTIONAL_EXPONENT : ( 'E' ('+'|'-'|) DIGITS) | ;
+fragment OPTIONAL_FRACTION: '.'DIGITS| ;
+fragment OPTIONAL_EXPONENT : ( 'E' ('+'|'-'|) DIGITS) | ;
 NUM : DIGITS OPTIONAL_FRACTION OPTIONAL_EXPONENT;
 RELOP : '=' | '<>' | '<' | '<=' | '>' | '>=';
 ADDOP : '+' | '-' | 'or';
 MULOP:'*' | '/' | 'DIV' | 'MOD' | 'AND';
 ASSIGNOP : ':=';
-IDS: [A-Z];
 WS : [ \t\r\n]+ -> skip;
+COMMENT : '{'.* '}'->skip;
+COMMENT_LINE: '//' ~[\r\n]* '\r'? '\n' -> skip;
