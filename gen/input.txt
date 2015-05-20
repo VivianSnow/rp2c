@@ -1,0 +1,4 @@
+program ex1(input, output)
+begin
+	ab := bb
+end.
