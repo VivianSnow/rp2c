@@ -1,11 +1,20 @@
+# -*- coding: cp936 -*-
 # Generated from java-escape by ANTLR 4.5
 from antlr4 import *
 
 # This class defines a complete listener for a parse tree produced by rp2cParser.
 class rp2cListener(ParseTreeListener):
+    __id_list = []
+    __id_type = ""
+    __id_range = 0
+    __sym_table = []
+    __level = 0;
+    __temp = {}
 
     # Enter a parse tree produced by rp2cParser#program.
     def enterProgram(self, ctx):
+        print "#include <stdio.h>"
+        print "#include <stdlib.h>"
         pass
 
     # Exit a parse tree produced by rp2cParser#program.
@@ -24,6 +33,9 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#identifier_list.
     def enterIdentifier_list(self, ctx):
+        #print dir(ctx)
+        if "ID" in dir(ctx):
+            self.__id_list.append(ctx.ID().getText())
         pass
 
     # Exit a parse tree produced by rp2cParser#identifier_list.
@@ -33,6 +45,7 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#program_body.
     def enterProgram_body(self, ctx):
+        self.__level = 0;
         pass
 
     # Exit a parse tree produced by rp2cParser#program_body.
@@ -46,24 +59,75 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#declarations.
     def exitDeclarations(self, ctx):
+        print self.__sym_table
         pass
-
 
     # Enter a parse tree produced by rp2cParser#declaration.
     def enterDeclaration(self, ctx):
+        del self.__id_list[0:]
         pass
 
     # Exit a parse tree produced by rp2cParser#declaration.
     def exitDeclaration(self, ctx):
+        del self.__id_list[0:]
         pass
 
 
     # Enter a parse tree produced by rp2cParser#type_.
     def enterType_(self, ctx):
+        #print dir(ctx)
+        if ctx.getChildCount() == 1: #standard_type
+            pass
+        elif ctx.getChildCount() == 3: #record_type
+            print "struct",
+            print self.__id_list[0],
+            for i in self.__id_list[1:]:
+                print ',' , i,
+                
+            for i in self.__id_list: ##insert in symbol table
+                self.__temp.clear()
+                self.__temp["name"] = i.encode()
+                self.__temp["type"] = "struct"
+                self.__temp["level"] = self.__level
+                self.__sym_table.append(self.__temp.copy())
+            print "{"
+        elif ctx.getChildCount() == 7:
+            self.__id_range = int(ctx.DIGITS()[1].getText()) #array_type
         pass
 
     # Exit a parse tree produced by rp2cParser#type_.
     def exitType_(self, ctx):
+        if ctx.getChildCount() == 7 : ## array type
+            print self.__id_type,
+            for i in self.__id_list[0:1]: print "%s[%d]" %(i, self.__id_range+1), 
+            for i in self.__id_list[1:]:
+                print ",%s[%d]" %(i, self.__id_range+1),
+            print ';'
+
+            for i in self.__id_list: ##insert in symbol table
+                self.__temp.clear()
+                self.__temp["name"] = i.encode()
+                self.__temp["type"] = self.__id_type
+                self.__temp["level"] = self.__level
+                self.__temp["range"] = self.__id_range+1 
+                self.__sym_table.append(self.__temp.copy())
+                
+        elif ctx.getChildCount() == 1: ## standard type
+            print self.__id_type,
+            for i in self.__id_list[0:1]: print i,
+            for i in self.__id_list[1:]:
+                print ',' , i,
+            print ';'
+            
+            for i in self.__id_list: ##insert in symbol table
+                self.__temp.clear()
+                self.__temp["name"] = i.encode()
+                self.__temp["type"] = self.__id_type
+                self.__temp["level"] = self.__level
+                self.__sym_table.append(self.__temp.copy())
+
+        if ctx.getChildCount() == 3:
+            print "}"
         pass
 
 
@@ -73,6 +137,12 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#standard_type.
     def exitStandard_type(self, ctx):
+        if ctx.getText() == "integer":
+            self.__id_type = "int"
+        elif ctx.getText() == "real":
+            self.__id_type = "double"
+        elif ctx.getText() == "Boolean":
+            self.__id_type = "int"
         pass
 
 

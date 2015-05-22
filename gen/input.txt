@@ -1,4 +1,13 @@
-program ex1(input, output)
+program ex1(input, output);
+var a, b : integer;
+    c, d : array[1..19] of integer;
+    rec, efg : record
+        ab : integer;
+        fefe : real;
+	bgbg : record
+		t:integer
+	end
+    end;
 begin
 	ab := bb
 end.
