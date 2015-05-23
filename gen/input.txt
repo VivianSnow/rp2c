@@ -4,10 +4,20 @@ var a, b : integer;
     rec, efg : record
         ab : integer;
         fefe : real;
-	bgbg : record
-		t:integer
-	end
+	fefe :integer;
+	ab, gg: record
+		t:integer;
+	cd : array[1..100] of real
+	end;
+	ri : array[1..100] of real
     end;
+    a : integer;
+    b: real;
+
+function gcd(a : integer):integer;
+begin
+
+end;
 begin
 	ab := bb
 end.

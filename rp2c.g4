@@ -19,7 +19,7 @@ subprogram_head : 'function' ID arguments ':' standard_type ';'
                     | 'procedure' ID arguments ';' ;
 arguments : '(' parameter_lists ')' | ;
 parameter_lists : parameter_lists ';' parameter_list | parameter_list;
-parameter_list : 'var' identifier_list ':' type_ |  identifier_list ':' type_;
+parameter_list : 'var' identifier_list ':' standard_type |  identifier_list ':' standard_type;
 
 compound_statement : 'begin' optional_statements 'end';
 optional_statements: statement_list | ;

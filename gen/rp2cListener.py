@@ -1,15 +1,38 @@
 # -*- coding: cp936 -*-
 # Generated from java-escape by ANTLR 4.5
 from antlr4 import *
+import copy
+import sys
 
 # This class defines a complete listener for a parse tree produced by rp2cParser.
 class rp2cListener(ParseTreeListener):
     __id_list = []
     __id_type = ""
-    __id_range = 0
+    __id_range_low = 0
+    __id_range_high = 0
     __sym_table = []
-    __level = 0;
+    __sym_table_temp = []
     __temp = {}
+    __depth = 0;
+
+
+    def check_repetition(self, ID):
+        temp = self.__sym_table;
+        for i in range(self.__depth):
+            temp = temp[-1]["list"];
+            #print temp
+        for i in temp:
+            if i["name"] == ID : return False;
+        return True
+        pass
+
+    def table_insert(self, sym):
+        temp = self.__sym_table;
+        for i in range(self.__depth):
+            temp = temp[-1]["list"];
+            #print temp
+        temp.append(sym.copy());
+        
 
     # Enter a parse tree produced by rp2cParser#program.
     def enterProgram(self, ctx):
@@ -79,55 +102,88 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 1: #standard_type
             pass
         elif ctx.getChildCount() == 3: #record_type
-            print "struct",
-            print self.__id_list[0],
-            for i in self.__id_list[1:]:
-                print ',' , i,
-                
-            for i in self.__id_list: ##insert in symbol table
-                self.__temp.clear()
-                self.__temp["name"] = i.encode()
+            
+            self.__temp.clear()
+            for i in range(len(self.__id_list)):
+                if not self.check_repetition(self.__id_list[i].encode()):
+                    print >>sys.stderr,"重复定义:", self.__id_list[i].encode(), ";before:", ctx.getText()
+                    self.__id_list.pop(i)
+            if len(self.__id_list) != 0:
+                for i in range(len(self.__id_list)):
+                    self.__id_list[i] = self.__id_list[i].encode()
+                self.__temp["name"] = tuple(copy.deepcopy(self.__id_list))
                 self.__temp["type"] = "struct"
-                self.__temp["level"] = self.__level
-                self.__sym_table.append(self.__temp.copy())
-            print "{"
+                self.__temp["list"] = []
+                if self.__depth == 0:
+                    self.__sym_table.append(self.__temp.copy())
+                else:
+                    self.table_insert(self.__temp)
+                self.__depth += 1;
+                print "struct",
+                print self.__id_list[0],
+                for i in self.__id_list[1:]:
+                    print ',' , i,
+                print "{"
+            
         elif ctx.getChildCount() == 7:
-            self.__id_range = int(ctx.DIGITS()[1].getText()) #array_type
+            self.__id_range_high = int(ctx.DIGITS()[1].getText())
+            self.__id_range_low = int(ctx.DIGITS()[0].getText())
+            #array_type
         pass
 
     # Exit a parse tree produced by rp2cParser#type_.
     def exitType_(self, ctx):
+        #print dir(ctx)
         if ctx.getChildCount() == 7 : ## array type
-            print self.__id_type,
-            for i in self.__id_list[0:1]: print "%s[%d]" %(i, self.__id_range+1), 
-            for i in self.__id_list[1:]:
-                print ",%s[%d]" %(i, self.__id_range+1),
-            print ';'
+            for i in range(len(self.__id_list)):
+                if not self.check_repetition(self.__id_list[i].encode()):
+                    print >>sys.stderr,"重复定义:", self.__id_list[i].encode(), ";before:", ctx.getText()
+                    self.__id_list.pop(i)
+            if len(self.__id_list) != 0:
+                print self.__id_type,
+                for i in self.__id_list[0:1]: print "%s[%d]" %(i, self.__id_range_high+1), 
+                for i in self.__id_list[1:]:
+                    print ",%s[%d]" %(i, self.__id_range_high+1),
+                print ';'
 
-            for i in self.__id_list: ##insert in symbol table
-                self.__temp.clear()
-                self.__temp["name"] = i.encode()
-                self.__temp["type"] = self.__id_type
-                self.__temp["level"] = self.__level
-                self.__temp["range"] = self.__id_range+1 
-                self.__sym_table.append(self.__temp.copy())
+                for i in self.__id_list: ##insert in symbol table
+                    self.__temp.clear()
+                    self.__temp["name"] = i.encode()
+                    self.__temp["type"] = self.__id_type
+                    self.__temp["range_high"] = self.__id_range_high
+                    self.__temp["range_low"] = self.__id_range_low
+                    if self.__depth == 0:
+                        self.__sym_table.append(self.__temp.copy())
+                    else:
+                        self.table_insert(self.__temp)
                 
         elif ctx.getChildCount() == 1: ## standard type
-            print self.__id_type,
-            for i in self.__id_list[0:1]: print i,
-            for i in self.__id_list[1:]:
-                print ',' , i,
-            print ';'
-            
-            for i in self.__id_list: ##insert in symbol table
-                self.__temp.clear()
-                self.__temp["name"] = i.encode()
-                self.__temp["type"] = self.__id_type
-                self.__temp["level"] = self.__level
-                self.__sym_table.append(self.__temp.copy())
-
+            for i in range(len(self.__id_list)):
+                if not self.check_repetition(self.__id_list[i].encode()):
+                    print >>sys.stderr,"重复定义:", self.__id_list[i].encode(), ";before:", ctx.getText()
+                    self.__id_list.pop(i)
+            if len(self.__id_list) != 0:
+                
+                print self.__id_type,
+                for i in self.__id_list[0:1]: print i,
+                for i in self.__id_list[1:]:
+                    print ',' , i,
+                print ';'
+                
+                for i in self.__id_list: ##insert in symbol table
+                    self.__temp.clear()
+                    self.__temp["name"] = i.encode()
+                    self.__temp["type"] = self.__id_type
+                    if self.__depth == 0:
+                        self.__sym_table.append(self.__temp.copy())
+                    else:
+                        self.table_insert(self.__temp)
+                    
+                
         if ctx.getChildCount() == 3:
-            print "}"
+                
+            self.__depth -= 1;
+            print "}" ##有雷，还在想如何解决:)
         pass
 
 
@@ -157,6 +213,7 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#subprogram_declaration.
     def enterSubprogram_declaration(self, ctx):
+        #self.__sym_table.append([].copy()) 
         pass
 
     # Exit a parse tree produced by rp2cParser#subprogram_declaration.
@@ -170,6 +227,16 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#subprogram_head.
     def exitSubprogram_head(self, ctx):
+        print dir(ctx)
+        if ctx.getChildCount() == 6: #function
+            self.__temp.clear()
+            self.__temp["name"] = ctx.ID().getText().encode()
+            self.__temp["type"] = "function"
+            self.__temp["list"] = []
+            self.__temp["return_type"] = self.__id_type
+            pass
+        elif ctx.getChildCount() == 4 : #proceudre
+            pass
         pass
 
 

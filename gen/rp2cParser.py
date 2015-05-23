@@ -86,9 +86,9 @@ def serializedATN():
         buf.write(u"\2\u00a6\u00a3\3\2\2\2\u00a7\u00aa\3\2\2\2\u00a8\u00a6")
         buf.write(u"\3\2\2\2\u00a8\u00a9\3\2\2\2\u00a9\33\3\2\2\2\u00aa\u00a8")
         buf.write(u"\3\2\2\2\u00ab\u00ac\7\t\2\2\u00ac\u00ad\5\6\4\2\u00ad")
-        buf.write(u"\u00ae\7\n\2\2\u00ae\u00af\5\16\b\2\u00af\u00b5\3\2\2")
+        buf.write(u"\u00ae\7\n\2\2\u00ae\u00af\5\20\t\2\u00af\u00b5\3\2\2")
         buf.write(u"\2\u00b0\u00b1\5\6\4\2\u00b1\u00b2\7\n\2\2\u00b2\u00b3")
-        buf.write(u"\5\16\b\2\u00b3\u00b5\3\2\2\2\u00b4\u00ab\3\2\2\2\u00b4")
+        buf.write(u"\5\20\t\2\u00b3\u00b5\3\2\2\2\u00b4\u00ab\3\2\2\2\u00b4")
         buf.write(u"\u00b0\3\2\2\2\u00b5\35\3\2\2\2\u00b6\u00b7\7\26\2\2")
         buf.write(u"\u00b7\u00b8\5 \21\2\u00b8\u00b9\7\20\2\2\u00b9\37\3")
         buf.write(u"\2\2\2\u00ba\u00bd\5\"\22\2\u00bb\u00bd\3\2\2\2\u00bc")
@@ -1108,8 +1108,8 @@ class rp2cParser ( Parser ):
             return self.getTypedRuleContext(rp2cParser.Identifier_listContext,0)
 
 
-        def type_(self):
-            return self.getTypedRuleContext(rp2cParser.Type_Context,0)
+        def standard_type(self):
+            return self.getTypedRuleContext(rp2cParser.Standard_typeContext,0)
 
 
         def getRuleIndex(self):
@@ -1142,7 +1142,7 @@ class rp2cParser ( Parser ):
                 self.state = 171
                 self.match(rp2cParser.T__7)
                 self.state = 172 
-                self.type_()
+                self.standard_type()
 
             elif token in [rp2cParser.ID]:
                 self.enterOuterAlt(localctx, 2)
@@ -1151,7 +1151,7 @@ class rp2cParser ( Parser ):
                 self.state = 175
                 self.match(rp2cParser.T__7)
                 self.state = 176 
-                self.type_()
+                self.standard_type()
 
             else:
                 raise NoViableAltException(self)
