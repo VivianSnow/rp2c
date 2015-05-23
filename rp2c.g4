@@ -4,7 +4,7 @@ grammar rp2c;
 program : program_head program_body'.';
 program_head : 'program' ID '(' identifier_list ')' ';';
 identifier_list : identifier_list','ID | ID;
-program_body: declarations subprogram_declarations compound_statement;
+program_body: declarations subprogram_declarations main_start;
 declarations: 'var' declaration ';' | ;
 declaration: declaration ';' identifier_list ':'  type_
     | identifier_list ':' type_;
@@ -23,17 +23,17 @@ parameter_list : 'var' identifier_list ':' standard_type |  identifier_list ':' 
 
 compound_statement : 'begin' optional_statements 'end';
 optional_statements: statement_list | ;
-statement_list : statement_list ';' statement | statement;
+statement_list : statement_list fenhao statement | statement;
 statement: variable assignop (expression | procedure_call_statement)
             |procedure_call_statement
             |compound_statement
-            |'if' expression then statement (else_ statement)
-            |'while' expression do statement
+            |if_ expression then statement (else_ statement)?
+            |while_ expression do statement
             |'read(' identifier_list ')'
             |'write(' expr_list ')';
 variable : ID | ID'['expression']';
 procedure_call_statement: ID | ID'('expr_list')';
-expr_list : expr_list ',' expression | expression;
+expr_list : expr_list douhao expression | expression;
 expression : simple_expr relop simple_expr | simple_expr;
 simple_expr: simple_expr addop term | term;
 term: term mulop factor | factor;
@@ -53,6 +53,12 @@ assignop: ASSIGNOP;
 then: 'then';
 else_: 'else';
 do: 'do';
+douhao : ',';
+if_ : 'if';
+while_ : 'while';
+fenhao : ';';
+main_start : compound_statement;
+
 
 //--------------------------------------------------------------------------------
 ADDOP : 'OR'| '+' | '-' ;

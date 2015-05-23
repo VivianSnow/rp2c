@@ -19,6 +19,7 @@ class rp2cListener(ParseTreeListener):
     __simple_expr = ""
     __term = ""
     __factor = ""
+    __sub_have_decl = 0
 
 
     def check_repetition(self, ID):
@@ -218,12 +219,15 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#subprogram_declaration.
     def enterSubprogram_declaration(self, ctx):
-        #self.__sym_table.append([].copy()) 
+        self.__sub_have_decl = 0
+        if ctx.declarations():
+            self.__sub_have_decl = 1
         pass
 
     # Exit a parse tree produced by rp2cParser#subprogram_declaration.
     def exitSubprogram_declaration(self, ctx):
         #print "int main()"
+        self.__sub_have_decl = 0
         self.__depth -= 1;
 
     # Enter a parse tree produced by rp2cParser#subprogram_head.
@@ -240,13 +244,22 @@ class rp2cListener(ParseTreeListener):
             print self.__id_type,
             print "%s(" %self.__temp["name"],
             pass
-        elif ctx.getChildCount() == 4 : #proceudre
+        elif ctx.getChildCount() == 4 : #proceudre/
+            self.__temp.clear()
+            self.__temp["name"] = ctx.ID().getText().encode()
+            self.__temp["type"] = "procedure"
+            self.__temp["list"] = []
+            self.__sym_table.append(self.__temp.copy())
+            self.__depth += 1;
+            print self.__id_type,
+            print "%s(" %self.__temp["name"],
             pass
         pass
 
     # Exit a parse tree produced by rp2cParser#subprogram_head.
     def exitSubprogram_head(self, ctx):
-        #print dir(ctx)
+        if self.__sub_have_decl == 1:
+            print '{'
         pass
 
 
@@ -267,8 +280,7 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#parameter_lists.
     def exitParameter_lists(self, ctx):
         pass
-
-
+    
     # Enter a parse tree produced by rp2cParser#parameter_list.
     def enterParameter_list(self, ctx):
         del self.__id_list[0:]
@@ -290,22 +302,33 @@ class rp2cListener(ParseTreeListener):
                     print ',%s' %self.__temp["type"], i,
             pass
         elif ctx.getChildCount() == 4:
+            self.__id_list.reverse()
             for i in self.__id_list:
                 self.__temp["name"] = i.encode()
                 self.__temp["type"] = self.__id_type
                 self.__temp["option"] = "VAR"
                 self.table_insert(self.__temp)
+            for i in self.__id_list:
+                if self.__start_sub == 0:
+                    self.__start_sub = 1;
+                    print self.__temp["type"], "*%s" %i,
+                else:
+                    print ',%s' %self.__temp["type"], "*%s" %i,
             pass
         pass
 
 
     # Enter a parse tree produced by rp2cParser#compound_statement.
     def enterCompound_statement(self, ctx):
-        print '{'
+        if self.__sub_have_decl == 0 :
+            print '{'
+        else:
+            self.__sub_have_decl = 0;
         pass
 
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
+        print ';'
         print '}'
         pass
 
@@ -330,17 +353,25 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#statement.
     def enterStatement(self, ctx):
-        if "ASSIGNOP" in dir(ctx):
-            #print ctx.variable().ID().getText().encode(),
-            pass
-        #print dir(ctx)
-        pass
+        del self.__id_list[0:]
+        if ctx.identifier_list():
+            print "scanf(",
+        elif ctx.expr_list():
+            print "print(",
 
     # Exit a parse tree produced by rp2cParser#statement.
     def exitStatement(self, ctx):
-        if "ASSIGNOP" in dir(ctx):
+        if ctx.assignop():
             pass
-        print ';'
+        if ctx.identifier_list():
+            self.__id_list.reverse()
+            for i in range(len(self.__id_list)):
+                if i!= 0 : print ',',
+                print self.__id_list[i],
+            print ")",
+        elif ctx.expr_list():
+            print ")",
+        #print ';'
         pass
 
 
@@ -418,6 +449,8 @@ class rp2cListener(ParseTreeListener):
                     print'[',
         elif ctx.NUM():
             print ctx.NUM().getText(),
+        elif ctx.DIGITS():
+            print ctx.DIGITS().getText(),
         elif ctx.getChildCount() == 3 and ctx.expression():
             print '(',
         elif ctx.getChildCount() == 2 and ctx.factor():
@@ -471,6 +504,12 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#relop.
     def enterRelop(self, ctx):
+        if ctx.getText() == '=':
+            print '==',
+        elif ctx.getText() == '<>':
+            print '!=',
+        elif ctx.getText():
+            print ctx.getText(),
         pass
 
     # Exit a parse tree produced by rp2cParser#relop.
@@ -489,6 +528,7 @@ class rp2cListener(ParseTreeListener):
 
         # Enter a parse tree produced by rp2cParser#then.
     def enterThen(self, ctx):
+        print ')',
         pass
 
     # Exit a parse tree produced by rp2cParser#then.
@@ -498,6 +538,7 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#else_.
     def enterElse_(self, ctx):
+        print ';else',
         pass
 
     # Exit a parse tree produced by rp2cParser#else_.
@@ -507,9 +548,54 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#do.
     def enterDo(self, ctx):
+        print ')',
         pass
 
     # Exit a parse tree produced by rp2cParser#do.
     def exitDo(self, ctx):
+        pass
+
+
+       # Enter a parse tree produced by rp2cParser#douhao.
+    def enterDouhao(self, ctx):
+        print ',',
+
+    # Exit a parse tree produced by rp2cParser#douhao.
+    def exitDouhao(self, ctx):
+        pass
+
+    # Enter a parse tree produced by rp2cParser#if_.
+    def enterIf_(self, ctx):
+        print "if(", 
+        pass
+
+    # Exit a parse tree produced by rp2cParser#if_.
+    def exitIf_(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by rp2cParser#while_.
+    def enterWhile_(self, ctx):
+        print 'while(',
+        pass
+
+    # Exit a parse tree produced by rp2cParser#while_.
+    def exitWhile_(self, ctx):
+        pass
+    
+    # Enter a parse tree produced by rp2cParser#fenhao.
+    def enterFenhao(self, ctx):
+        print ';'
+
+    # Exit a parse tree produced by rp2cParser#fenhao.
+    def exitFenhao(self, ctx):
+        pass
+    
+    # Enter a parse tree produced by rp2cParser#main_start.
+    def enterMain_start(self, ctx):
+        print "int main()"
+
+    # Exit a parse tree produced by rp2cParser#main_start.
+    def exitMain_start(self, ctx):
         pass
 

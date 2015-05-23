@@ -14,16 +14,22 @@ var a, b : integer;
     a : integer;
     b: real;
 
-function gcd(a, b, c, d : integer; ff : real):integer;
+function gcd(var a, b, c, d : integer; ff : real):integer;
 var a : array[1..10] of integer;
     c : integer;
 begin 
 
 end;
 
-function fun1(a : integer):integer;
+function fun1(a, b, c, d : integer; var ffff: integer):integer;
 var fer : real;
 begin
+end;
+
+procedure pro2(b : integer);
+var c : real;
+begin
+	c := 2
 end;
 
 begin
@@ -35,6 +41,12 @@ begin
 	ab := 23213.23 + 22.2;
 	ab := false;
 	ab(fc);
-	ab(fc, gc)
-	
+	ab(fc, gc);
+	ab(a=2);
+	while a < b  do 
+	begin
+		a:=2;
+		b:=3
+	end;
+	if a = b then read(a, b, c) else abbbb := 2
 end.
