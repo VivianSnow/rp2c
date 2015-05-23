@@ -24,30 +24,39 @@ parameter_list : 'var' identifier_list ':' standard_type |  identifier_list ':' 
 compound_statement : 'begin' optional_statements 'end';
 optional_statements: statement_list | ;
 statement_list : statement_list ';' statement | statement;
-statement: variable ASSIGNOP expression
+statement: variable assignop (expression | procedure_call_statement)
             |procedure_call_statement
             |compound_statement
-            |'if' expression 'then' statement ('else' statement)
-            |'while' expression 'do' statement
+            |'if' expression then statement (else_ statement)
+            |'while' expression do statement
             |'read(' identifier_list ')'
             |'write(' expr_list ')';
 variable : ID | ID'['expression']';
 procedure_call_statement: ID | ID'('expr_list')';
 expr_list : expr_list ',' expression | expression;
-expression : simple_expr RELOP simple_expr | simple_expr;
-simple_expr: simple_expr ADDOP term | term | sign term;
-term: term MULOP factor | factor;
+expression : simple_expr relop simple_expr | simple_expr;
+simple_expr: simple_expr addop term | term;
+term: term mulop factor | factor;
 factor : ID
         | ID'(' expr_list ')'
         | ID'[' expression ']'
         | NUM
+        | DIGITS
         |'('expression')'
         |'not' factor
         |'true'
         |'false';
-sign : '+' | '-';
+mulop: MULOP;
+addop: ADDOP;
+relop: RELOP;
+assignop: ASSIGNOP;
+then: 'then';
+else_: 'else';
+do: 'do';
 
 //--------------------------------------------------------------------------------
+ADDOP : 'OR'| '+' | '-' ;
+MULOP:'*' | '/' | 'DIV' | 'MOD' | 'AND';
 fragment DIGIT : [0-9];
 fragment LETTER : [a-zA-Z];
 ID : LETTER(LETTER|DIGIT)*;
@@ -56,8 +65,6 @@ fragment OPTIONAL_FRACTION: '.'DIGITS| ;
 fragment OPTIONAL_EXPONENT : ( 'E' ('+'|'-'|) DIGITS) | ;
 NUM : DIGITS OPTIONAL_FRACTION OPTIONAL_EXPONENT;
 RELOP : '=' | '<>' | '<' | '<=' | '>' | '>=';
-ADDOP : '+' | '-' | 'or';
-MULOP:'*' | '/' | 'DIV' | 'MOD' | 'AND';
 ASSIGNOP : ':=';
 WS : [ \t\r\n]+ -> skip;
 COMMENT : '{'.* '}'->skip;

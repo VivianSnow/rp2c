@@ -331,35 +331,43 @@ class rp2cListener(ParseTreeListener):
     # Enter a parse tree produced by rp2cParser#statement.
     def enterStatement(self, ctx):
         if "ASSIGNOP" in dir(ctx):
-            print ctx.variable().ID().getText().encode(),
-            print '=',
-            print 
+            #print ctx.variable().ID().getText().encode(),
             pass
-        print dir(ctx)
+        #print dir(ctx)
         pass
 
     # Exit a parse tree produced by rp2cParser#statement.
     def exitStatement(self, ctx):
         if "ASSIGNOP" in dir(ctx):
             pass
+        print ';'
         pass
 
 
     # Enter a parse tree produced by rp2cParser#variable.
     def enterVariable(self, ctx):
+        if ctx.getChildCount()>0:
+            print ctx.ID(),
+            if ctx.getChildCount() == 4:
+                print '[',
         pass
 
     # Exit a parse tree produced by rp2cParser#variable.
     def exitVariable(self, ctx):
+        if ctx.getChildCount() == 4:
+                print ']',
         pass
 
 
     # Enter a parse tree produced by rp2cParser#procedure_call_statement.
     def enterProcedure_call_statement(self, ctx):
+        if ctx.ID:
+            print "%s(" %ctx.ID().getText(),
         pass
 
     # Exit a parse tree produced by rp2cParser#procedure_call_statement.
     def exitProcedure_call_statement(self, ctx):
+        print ")",
         pass
 
 
@@ -401,19 +409,107 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#factor.
     def enterFactor(self, ctx):
+        if ctx.ID():
+            print ctx.ID(),
+            if ctx.getChildCount() ==4:
+                if "expr_list" in dir(ctx):
+                    print'(',
+                elif "expression" in dir(ctx):
+                    print'[',
+        elif ctx.NUM():
+            print ctx.NUM().getText(),
+        elif ctx.getChildCount() == 3 and ctx.expression():
+            print '(',
+        elif ctx.getChildCount() == 2 and ctx.factor():
+            print '!',
+        elif ctx.getChildCount() == 1 and ctx.getText() == "true":
+            print 1,
+        elif  ctx.getChildCount() == 1 and ctx.getText() == "false":
+            print 0,
+            
         pass
 
     # Exit a parse tree produced by rp2cParser#factor.
     def exitFactor(self, ctx):
+        if ctx.ID():
+            if ctx.getChildCount() ==4:
+                if "expr_list" in dir(ctx):
+                    print')',
+                elif "expression" in dir(ctx):
+                    print']',
+        elif ctx.getChildCount() == 3 and ctx.expression():
+            print ')',
+        pass
+
+    # Enter a parse tree produced by rp2cParser#mulop.
+    def enterMulop(self, ctx):
+        if ctx.getText() == '*':
+            print '*',
+        elif ctx.getText() == u'DIV':
+            print '/',
+        elif ctx.getText() == u'MOD':
+            print '%',
+        elif ctx.getText() == u'AND':
+            print '&&',
+            
+    # Exit a parse tree produced by rp2cParser#mulop.
+    def exitMulop(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by rp2cParser#sign.
-    def enterSign(self, ctx):
+    # Enter a parse tree produced by rp2cParser#addop.
+    def enterAddop(self, ctx):
+        if ctx.getText() != 'OR':
+            print ctx.getText(),
+        else :
+            print '||',
+
+    # Exit a parse tree produced by rp2cParser#addop.
+    def exitAddop(self, ctx):
         pass
 
-    # Exit a parse tree produced by rp2cParser#sign.
-    def exitSign(self, ctx):
+
+    # Enter a parse tree produced by rp2cParser#relop.
+    def enterRelop(self, ctx):
         pass
 
+    # Exit a parse tree produced by rp2cParser#relop.
+    def exitRelop(self, ctx):
+        pass
+
+        # Enter a parse tree produced by rp2cParser#assignop.
+    def enterAssignop(self, ctx):
+        print '=',
+        pass
+
+    # Exit a parse tree produced by rp2cParser#assignop.
+    def exitAssignop(self, ctx):
+        pass
+
+
+        # Enter a parse tree produced by rp2cParser#then.
+    def enterThen(self, ctx):
+        pass
+
+    # Exit a parse tree produced by rp2cParser#then.
+    def exitThen(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by rp2cParser#else_.
+    def enterElse_(self, ctx):
+        pass
+
+    # Exit a parse tree produced by rp2cParser#else_.
+    def exitElse_(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by rp2cParser#do.
+    def enterDo(self, ctx):
+        pass
+
+    # Exit a parse tree produced by rp2cParser#do.
+    def exitDo(self, ctx):
+        pass
 

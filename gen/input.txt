@@ -14,10 +14,27 @@ var a, b : integer;
     a : integer;
     b: real;
 
-function gcd(a : integer):integer;
-begin
+function gcd(a, b, c, d : integer; ff : real):integer;
+var a : array[1..10] of integer;
+    c : integer;
+begin 
 
 end;
+
+function fun1(a : integer):integer;
+var fer : real;
 begin
-	ab := bb
+end;
+
+begin
+	ab := bb;
+	a := 23.2323;
+	ab := a(fdfds);
+	ab := 2.45 * 3.2;
+	ab := 2.45 OR 3.2;
+	ab := 23213.23 + 22.2;
+	ab := false;
+	ab(fc);
+	ab(fc, gc)
+	
 end.
