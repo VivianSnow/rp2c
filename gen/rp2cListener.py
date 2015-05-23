@@ -14,6 +14,11 @@ class rp2cListener(ParseTreeListener):
     __sym_table_temp = []
     __temp = {}
     __depth = 0;
+    __start_sub = 0;
+    __expression = ""
+    __simple_expr = ""
+    __term = ""
+    __factor = ""
 
 
     def check_repetition(self, ID):
@@ -58,7 +63,7 @@ class rp2cListener(ParseTreeListener):
     def enterIdentifier_list(self, ctx):
         #print dir(ctx)
         if "ID" in dir(ctx):
-            self.__id_list.append(ctx.ID().getText())
+            self.__id_list.append( ctx.ID().getText() )
         pass
 
     # Exit a parse tree produced by rp2cParser#identifier_list.
@@ -82,7 +87,7 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#declarations.
     def exitDeclarations(self, ctx):
-        print self.__sym_table
+        #print self.__sym_table
         pass
 
     # Enter a parse tree produced by rp2cParser#declaration.
@@ -103,7 +108,6 @@ class rp2cListener(ParseTreeListener):
             pass
         elif ctx.getChildCount() == 3: #record_type
             
-            self.__temp.clear()
             for i in range(len(self.__id_list)):
                 if not self.check_repetition(self.__id_list[i].encode()):
                     print >>sys.stderr,"÷ÿ∏¥∂®“Â:", self.__id_list[i].encode(), ";before:", ctx.getText()
@@ -111,6 +115,7 @@ class rp2cListener(ParseTreeListener):
             if len(self.__id_list) != 0:
                 for i in range(len(self.__id_list)):
                     self.__id_list[i] = self.__id_list[i].encode()
+                self.__temp.clear()
                 self.__temp["name"] = tuple(copy.deepcopy(self.__id_list))
                 self.__temp["type"] = "struct"
                 self.__temp["list"] = []
@@ -218,25 +223,30 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#subprogram_declaration.
     def exitSubprogram_declaration(self, ctx):
-        pass
-
+        #print "int main()"
+        self.__depth -= 1;
 
     # Enter a parse tree produced by rp2cParser#subprogram_head.
     def enterSubprogram_head(self, ctx):
-        pass
-
-    # Exit a parse tree produced by rp2cParser#subprogram_head.
-    def exitSubprogram_head(self, ctx):
-        print dir(ctx)
+        self.__start_sub = 0; 
         if ctx.getChildCount() == 6: #function
             self.__temp.clear()
             self.__temp["name"] = ctx.ID().getText().encode()
             self.__temp["type"] = "function"
             self.__temp["list"] = []
             self.__temp["return_type"] = self.__id_type
+            self.__sym_table.append(self.__temp.copy())
+            self.__depth += 1;
+            print self.__id_type,
+            print "%s(" %self.__temp["name"],
             pass
         elif ctx.getChildCount() == 4 : #proceudre
             pass
+        pass
+
+    # Exit a parse tree produced by rp2cParser#subprogram_head.
+    def exitSubprogram_head(self, ctx):
+        #print dir(ctx)
         pass
 
 
@@ -246,6 +256,7 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#arguments.
     def exitArguments(self, ctx):
+        print ')'
         pass
 
 
@@ -260,19 +271,42 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#parameter_list.
     def enterParameter_list(self, ctx):
+        del self.__id_list[0:]
         pass
 
     # Exit a parse tree produced by rp2cParser#parameter_list.
     def exitParameter_list(self, ctx):
+        if ctx.getChildCount() == 3:
+            self.__id_list.reverse()
+            for i in self.__id_list:
+                self.__temp["name"] = i.encode()
+                self.__temp["type"] = self.__id_type
+                self.table_insert(self.__temp)
+            for i in self.__id_list:
+                if self.__start_sub == 0:
+                    self.__start_sub = 1;
+                    print self.__temp["type"], i,
+                else:
+                    print ',%s' %self.__temp["type"], i,
+            pass
+        elif ctx.getChildCount() == 4:
+            for i in self.__id_list:
+                self.__temp["name"] = i.encode()
+                self.__temp["type"] = self.__id_type
+                self.__temp["option"] = "VAR"
+                self.table_insert(self.__temp)
+            pass
         pass
 
 
     # Enter a parse tree produced by rp2cParser#compound_statement.
     def enterCompound_statement(self, ctx):
+        print '{'
         pass
 
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
+        print '}'
         pass
 
 
@@ -296,10 +330,18 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#statement.
     def enterStatement(self, ctx):
+        if "ASSIGNOP" in dir(ctx):
+            print ctx.variable().ID().getText().encode(),
+            print '=',
+            print 
+            pass
+        print dir(ctx)
         pass
 
     # Exit a parse tree produced by rp2cParser#statement.
     def exitStatement(self, ctx):
+        if "ASSIGNOP" in dir(ctx):
+            pass
         pass
 
 
