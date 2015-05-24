@@ -33,7 +33,7 @@ begin
 	read(n);
 	while(i<=n) do
 	begin
-		read(k]);
+		read(k);
 		a[i] := k;
 		i := i + 1
 	end;

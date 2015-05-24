@@ -254,6 +254,7 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#subprogram_declaration.
     def exitSubprogram_declaration(self, ctx):
         #print "int main()"
+        self.del_sub_pra()
         self.__sub_have_decl = 0
         self.__depth -= 1;
 
@@ -363,7 +364,6 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
-        self.del_sub_pra()
         print ';'
         print '}'
         #print self.__sym_table
@@ -447,7 +447,7 @@ class rp2cListener(ParseTreeListener):
             if ctx.getChildCount() == 4:
                 print '[',
                 if sym:
-                    if sym["type"] == "array":
+                    if "range_high" in sym:
                         pass
                     else:
                         print >>sys.stderr
