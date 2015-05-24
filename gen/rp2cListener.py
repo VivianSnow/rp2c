@@ -21,6 +21,11 @@ class rp2cListener(ParseTreeListener):
     __factor = ""
     __sub_have_decl = 0
 
+    def del_sub_pra(self):
+        if "list" in self.__sym_table[-1]:
+            if self.__sym_table[-1]["list"]:
+                del self.__sym_table[-1]["list"][0:] 
+
 
     def check_repetition(self, ID):
         temp = self.__sym_table;
@@ -238,10 +243,14 @@ class rp2cListener(ParseTreeListener):
             self.__temp["name"] = ctx.ID().getText().encode()
             self.__temp["type"] = "function"
             self.__temp["list"] = []
-            self.__temp["return_type"] = self.__id_type
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
-            print self.__id_type,
+            if ctx.standard_type().getText() == "integer":
+                print "int",
+            elif ctx.standard_type().getText() == "real":
+                print "double",
+            elif ctx.standard_type().getText() == "Boolean":
+                print "int",
             print "%s(" %self.__temp["name"],
             pass
         elif ctx.getChildCount() == 4 : #proceudre/
@@ -251,7 +260,7 @@ class rp2cListener(ParseTreeListener):
             self.__temp["list"] = []
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
-            print self.__id_type,
+            print "void",
             print "%s(" %self.__temp["name"],
             pass
         pass
@@ -260,7 +269,9 @@ class rp2cListener(ParseTreeListener):
     def exitSubprogram_head(self, ctx):
         if self.__sub_have_decl == 1:
             print '{'
-        pass
+        
+        if ctx.getChildCount() == 6:
+             self.__sym_table[-1]["return_type"] = self.__id_type               
 
 
     # Enter a parse tree produced by rp2cParser#arguments.
@@ -291,6 +302,7 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 3:
             self.__id_list.reverse()
             for i in self.__id_list:
+                self.__temp.clear()
                 self.__temp["name"] = i.encode()
                 self.__temp["type"] = self.__id_type
                 self.table_insert(self.__temp)
@@ -304,6 +316,7 @@ class rp2cListener(ParseTreeListener):
         elif ctx.getChildCount() == 4:
             self.__id_list.reverse()
             for i in self.__id_list:
+                self.__temp.clear()
                 self.__temp["name"] = i.encode()
                 self.__temp["type"] = self.__id_type
                 self.__temp["option"] = "VAR"
@@ -328,9 +341,10 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
+        self.del_sub_pra()
         print ';'
         print '}'
-        pass
+        print self.__sym_table
 
 
     # Enter a parse tree produced by rp2cParser#optional_statements.
