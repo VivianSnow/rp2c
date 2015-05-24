@@ -1,18 +1,23 @@
 program example(input, output);
 var x, y : integer;
+	a : array[1..10] of real;
 function gcd(a, b:integer):integer;
 begin
 	if b=0 then gcd := a
 	else gcd := gcd(b, a MOD b)
 end;
 
-function test(var a:integer):real;
+procedure swap(var a, b:integer);
+var temp:integer;
 begin
+	temp := a;
+	a := b;
+	b := temp
 end;
 
 begin
-	read(x,y);
-	x := 2.3 DIV 3.3;
-	x := x[1];
-	write(gcd(x,y))
+	read(x, y);
+	x := x <> y;
+	write(gcd(x,y));
+	write(x, y)
 end.
