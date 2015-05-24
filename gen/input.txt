@@ -7,17 +7,8 @@ begin
 	else gcd := gcd(b, a MOD b)
 end;
 
-procedure swap(var a, b:integer);
-var temp:integer;
-begin
-	temp := a;
-	a := b;
-	b := temp
-end;
-
 begin
 	read(x, y);
-	x := x <> y;
 	write(gcd(x,y));
 	write(x, y)
 end.

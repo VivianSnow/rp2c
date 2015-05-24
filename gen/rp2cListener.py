@@ -392,7 +392,7 @@ class rp2cListener(ParseTreeListener):
         del self.__id_list[0:]
         if ctx.identifier_list():
             print "scanf(",
-        elif ctx.expr_list():
+        elif ctx.write_list():
             self.__write_control_form = ""
             print "cout << ",
             
@@ -420,9 +420,9 @@ class rp2cListener(ParseTreeListener):
             print ' "%s", ' %control_form,
             for i in range(len(self.__id_list)):
                 if i!= 0 : print ',',
-                print self.__id_list[i],
+                print "&%s" %self.__id_list[i],
             print ")",
-        elif ctx.expr_list():
+        elif ctx.write_list():
         #print ';'
             pass
 
@@ -760,3 +760,25 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#main_start.
     def exitMain_start(self, ctx):
         pass
+
+    
+    # Enter a parse tree produced by rp2cParser#write_list.
+    def enterWrite_list(self, ctx):
+        pass
+    
+    # Exit a parse tree produced by rp2cParser#write_list.
+    def exitWrite_list(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by rp2cParser#douhao_.
+    def enterDouhao_(self, ctx):
+        pass
+
+    # Exit a parse tree produced by rp2cParser#douhao_.
+    def exitDouhao_(self, ctx):
+        print "<<",
+        pass
+
+
+

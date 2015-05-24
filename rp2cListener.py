@@ -26,6 +26,8 @@ class rp2cListener(ParseTreeListener):
     __term_type = ""
     __factor_type = ""
     __have_error = 0
+    __write_control_form = ""
+    __if_write = 0
 
     def del_sub_pra(self):
         if "list" in self.__sym_table[-1]:
@@ -65,8 +67,10 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#program.
     def enterProgram(self, ctx):
+        print "#include <iostream>"
         print "#include <stdio.h>"
         print "#include <stdlib.h>"
+        print "using namespace std;"
         pass
 
     # Exit a parse tree produced by rp2cParser#program.
@@ -389,22 +393,38 @@ class rp2cListener(ParseTreeListener):
         if ctx.identifier_list():
             print "scanf(",
         elif ctx.expr_list():
-            print "print(",
+            self.__write_control_form = ""
+            print "cout << ",
+            
 
     # Exit a parse tree produced by rp2cParser#statement.
     def exitStatement(self, ctx):
         if ctx.assignop():
             pass
         if ctx.identifier_list():
+            control_form = ""
             self.__id_list.reverse()
+            for i in range(len(self.__id_list)):
+                if self.search_sub_pra(self.__id_list[i].encode()):
+                    sym = self.search_sub_pra(self.__id_list[i].encode());
+                elif self.search_main_pra(self.__id_list[i].encode()):
+                    sym = self.search_main_pra(self.__id_list[i].encode());
+                else:
+                    print >>sys.stderr, "错误:欲读入的变量%s尚未定义" %self.__id_list[i].encode()
+                    print ')'
+                    return 
+                if sym["type"] == 'int':
+                    control_form += "%d ";
+                elif sym["type"] == "double":
+                    control_form += "%lf ";
+            print ' "%s", ' %control_form,
             for i in range(len(self.__id_list)):
                 if i!= 0 : print ',',
                 print self.__id_list[i],
             print ")",
         elif ctx.expr_list():
-            print ")",
         #print ';'
-        pass
+            pass
 
 
     # Enter a parse tree produced by rp2cParser#variable.
@@ -462,6 +482,10 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#expr_list.
     def exitExpr_list(self, ctx):
+        if self.__expression_type == "int":
+            self.__write_control_form += "%d "
+        elif self.__expression_type == "double":
+            self.__write_control_form += "%lf"
         pass
 
 
@@ -471,8 +495,11 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#expression.
     def exitExpression(self, ctx):
-        pass
-
+        if ctx.getChildCount() == 1:
+            self.__expression_type = self.__simple_expr_type;
+        elif ctx.getChildCount() == 3:
+            self.__expression_type == "int"
+            
 
     # Enter a parse tree produced by rp2cParser#simple_expr.
     def enterSimple_expr(self, ctx):
@@ -480,7 +507,18 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#simple_expr.
     def exitSimple_expr(self, ctx):
-        pass
+        if ctx.getChildCount() == 1:
+            self.__simple_expr_type = self.__term_type;
+        elif ctx.getChildCount() == 3:
+            if ctx.addop().getText() == 'OR':
+                if self.__simple_expr_type != "int" or self.__term_type != "int":
+                    print >>sys.stderr
+                    print >>sys.stderr, "错误:OR的两侧应该是integer类型或是Boolean类型，而不是%s和%s类型" %(self.__simple_expr_type, self.__term_type)
+            else:
+                if self.__simple_expr_type == "double" or self.__term_type == "double":
+                    self.__simple_expr_type = "double"
+                else:
+                    self.__simple_expr_type = "int"
 
 
     # Enter a parse tree produced by rp2cParser#term.
@@ -500,9 +538,9 @@ class rp2cListener(ParseTreeListener):
                 else:
                     self.__term_type = "int"
             else:
-                if self.__term_type != "int" and self.__factor_type != "int":
+                if self.__term_type != "int" or self.__factor_type != "int":
                     print >>sys.stderr
-                    print >>sys.stderr, "DIV/MOD/AND的两侧应该是integer类型或是Boolean类型，而不是%s和%s类型" %(self.__term_type, self.__factor_type)
+                    print >>sys.stderr, "错误:DIV/MOD/AND的两侧应该是integer类型或是Boolean类型，而不是%s和%s类型" %(self.__term_type, self.__factor_type)
                 self.__term_type = self.__term_type;
         pass
 
@@ -518,39 +556,26 @@ class rp2cListener(ParseTreeListener):
             else:
                 print >>sys.stderr
                 print >>sys.stderr, "错误:使用未声明的变量:%s" %ctx.ID().getText().encode()
-            if "option" in sym:
-                if sym["option"] == "VAR":
-                    print "*%s" %ctx.ID().getText().encode(),
-                    self.__factor_type = sym["type"]
-            else :
-                print ctx.ID(),
-                if sym:
-                    self.__factor_type = sym["type"]
+                
+            if ctx.getChildCount() ==1:
+                if "option" in sym:
+                    if sym["option"] == "VAR":
+                        print "*%s" %ctx.ID().getText().encode(),
+                        self.__factor_type = sym["type"]
+                else :
+                    print ctx.ID(),
+                    if sym:
+                        self.__factor_type = sym["type"]
                     
             if ctx.getChildCount() ==4:
                 if ctx.expr_list():
-                    print'(',
-##                    if self.search_main_pra(ctx.ID().getText().encode()):
-##                        sym = self.search_main_pra(ctx.ID().getText().encode())
-##                    else:
-##                        print >>sys.stderr, "错误:函数%s不存在" %ctx.ID().getText().encode()
-##                        return
-##                    if "return_type" in sym:
-##                        self.__factor_type = sym["return_type"]
-##                    else:
-##                        self.__factor_type = ""
+                    print '%s(' %ctx.ID().getText().encode(),
                         
                 elif ctx.expression():
-                    print'[',
-##                    if sym:
-##                        if sym["type"] == "array":
-##                            self.__factor_type = sym["type"]
-##                    else:
-##                        print >>sys.stderr
-##                        print >>sys.stderr, "错误:变量%s不是一个数组类型" %ctx.ID().getText().encode()
+                    print '%s[' %ctx.ID().getText().encode(),
         elif ctx.NUM():
             print ctx.NUM().getText(),
-            self.__factor_type = "real"
+            self.__factor_type = "double"
         elif ctx.DIGITS():
             print ctx.DIGITS().getText(),
             self.__factor_type = "int"
@@ -572,7 +597,6 @@ class rp2cListener(ParseTreeListener):
     def exitFactor(self, ctx):
         sym = {}
         if ctx.ID():
-            print 231424324
             if self.search_sub_pra(ctx.ID().getText().encode()):
                 sym = self.search_sub_pra(ctx.ID().getText().encode())
             elif self.search_main_pra(ctx.ID().getText().encode()):
@@ -581,31 +605,31 @@ class rp2cListener(ParseTreeListener):
                 
             if ctx.getChildCount() ==4:
                 if ctx.expr_list():
+                    print')',
                     
                     if self.search_main_pra(ctx.ID().getText().encode()):
                         sym = self.search_main_pra(ctx.ID().getText().encode())
-                    else:
-                        print >>sys.stderr, "错误:函数%s不存在" %ctx.ID().getText().encode()
-                        return
-                    if "return_type" in sym:
-                        self.__factor_type = sym["return_type"]
-                    print')',
+                    if "type" in sym:
+                        if sym["type"] != "function":
+                            print >>sys.stderr
+                            print >>sys.stderr, "变量%s不是一个函数" %ctx.ID().getText().encode()
+                            self.__factor_type = ""
+                            return
+                        elif "return_type" in sym:
+                            self.__factor_type = sym["return_type"]
                     
                 elif ctx.expression():
-                    print sym
+                    print']',
                     if sym:
-                        print sym
-                        if sym["type"] == "array":
+                        if "range_high" in sym:
                             self.__factor_type = sym["type"]
                         else:
                             print >>sys.stderr
                             print >>sys.stderr, "错误:变量%s不是一个数组类型" %ctx.ID().getText().encode()
-                    print']',
         elif ctx.getChildCount() == 3 and ctx.expression():
             print ')',
         elif ctx.getChildCount() == 2 and ctx.factor():
             if self.__factor_type != "int":
-                print self.__factor_type
                 print >>sys.stderr
                 print >>sys.stderr, "错误:跟在not后面的应该是integer类型或是Boolean类型，而不是%s类型" %self.__factor_type
             else:
@@ -736,3 +760,24 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#main_start.
     def exitMain_start(self, ctx):
         pass
+
+    
+    # Enter a parse tree produced by rp2cParser#write_list.
+    def enterWrite_list(self, ctx):
+        pass
+    
+    # Exit a parse tree produced by rp2cParser#write_list.
+    def exitWrite_list(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by rp2cParser#douhao_.
+    def enterDouhao_(self, ctx):
+        pass
+
+    # Exit a parse tree produced by rp2cParser#douhao_.
+    def exitDouhao_(self, ctx):
+        pass
+
+
+
