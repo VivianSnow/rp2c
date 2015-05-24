@@ -1,14 +1,48 @@
-program example(input, output);
-var x, y : integer;
-	a : array[1..10] of real;
-function gcd(a, b:integer):integer;
-begin
-	if b=0 then gcd := a
-	else gcd := gcd(b, a MOD b)
-end;
+program sort(input, output);
+var a : array[1..50] of integer;
+	x : integer;
+	k : integer;
+	i : integer;
+	n : integer;
 
+procedure quicksort(l, r : integer);
+	var i, j, mid, temp : integer;
+	begin
+		i := l;
+		j := r;
+		mid := a[1];
+		while(i <= j) do
+		begin
+			while(a[i] < mid) do i := i+1;
+			while(a[j] > mid) do j := j-1;
+			if i <= j then 
+			begin
+				temp := a[i];
+				a[i] := a[j];
+				a[j] := temp;
+				i := i+1;
+				j := j-1
+			end
+		end;
+		if i < r then quicksort(i, r);
+		if j > l then quicksort(l, j)
+	end;
+	
 begin
-	read(x, y);
-	write(gcd(x,y));
-	write(x, y)
+	i := 1;
+	read(n);
+	while(i<=n) do
+	begin
+		read(k]);
+		a[i] := k;
+		i := i + 1
+	end;
+	quicksort(1, n);
+	i := 1;
+	while(i<=n) do
+	begin
+		write(a[i]);
+		i := i + 1
+	end
 end.
+//12 345 443 456 743 434 54 234 23 34 
