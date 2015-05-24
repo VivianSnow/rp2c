@@ -414,15 +414,16 @@ class rp2cListener(ParseTreeListener):
                     print ')'
                     return 
                 if sym["type"] == 'int':
-                    control_form += "%d ";
+                    control_form += "%d";
                 elif sym["type"] == "double":
-                    control_form += "%lf ";
+                    control_form += "%lf";
             print ' "%s", ' %control_form,
             for i in range(len(self.__id_list)):
                 if i!= 0 : print ',',
                 print "&%s" %self.__id_list[i],
             print ")",
         elif ctx.write_list():
+            print " << ' '",
         #print ';'
             pass
 
@@ -485,7 +486,7 @@ class rp2cListener(ParseTreeListener):
         if self.__expression_type == "int":
             self.__write_control_form += "%d "
         elif self.__expression_type == "double":
-            self.__write_control_form += "%lf"
+            self.__write_control_form += "%lf "
         pass
 
 
@@ -777,7 +778,7 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#douhao_.
     def exitDouhao_(self, ctx):
-        print "<<",
+        print "<< ' ' << ",
         pass
 
 
