@@ -5,14 +5,6 @@ var a : array[1..50] of integer;
 	i : integer;
 	n : integer;
 
-procedure swap(var x, y : integer);
-var temp : integer;
-begin
-	temp := x;
-	x := y;
-	y := temp
-end;
-
 procedure quicksort(l, r : integer);
 	var i, j, mid, temp : integer;
 	begin
@@ -25,7 +17,9 @@ procedure quicksort(l, r : integer);
 			while(a[j] > mid) do j := j-1;
 			if i <= j then 
 			begin
-				swap(a[i], a[j]);
+				temp := a[i];
+				a[i] := a[j];
+				a[j] := temp;
 				i := i+1;
 				j := j-1
 			end

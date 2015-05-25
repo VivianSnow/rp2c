@@ -9,6 +9,5 @@ end;
 
 begin
 	read(x, y);
-	write(gcd(x,y));
-	write(x, y)
+	write(gcd(x,y))
 end.

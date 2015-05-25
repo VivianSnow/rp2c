@@ -294,9 +294,9 @@ class rp2cListener(ParseTreeListener):
             print '{'
         
         if ctx.getChildCount() == 6:
-             self.__sym_table[-1]["return_type"] = self.__id_type               
-
-
+            self.__sym_table[-1]["return_type"] = self.__id_type
+            print "%s __%s;" %(self.__id_type, self.__sym_table[-1]["name"])
+                              
     # Enter a parse tree produced by rp2cParser#arguments.
     def enterArguments(self, ctx):
         pass
@@ -365,6 +365,8 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
         print ';'
+        if self.__sym_table[-1]["type"] == "function" and self.__sym_table[-1]["list"]:
+            print "return __%s;" %self.__sym_table[-1]["name"]
         print '}'
         #print self.__sym_table
 
@@ -442,6 +444,8 @@ class rp2cListener(ParseTreeListener):
             if "option" in sym:
                 if sym["option"] == "VAR":
                     print "*%s" %ctx.ID().getText().encode(),
+            elif sym["type"] == "function":
+                print "__%s" %ctx.ID(),
             else:
                 print ctx.ID(),
                 
