@@ -6,48 +6,49 @@ import sys
 
 # This class defines a complete listener for a parse tree produced by rp2cParser.
 class rp2cListener(ParseTreeListener):
-    __id_list = []
-    __id_type = ""
-    __id_range_low = 0
-    __id_range_high = 0
-    __sym_table = []
-    __sym_table_temp = []
-    __temp = {}
-    __depth = 0;
-    __start_sub = 0;
-    __expression = ""
-    __simple_expr = ""
-    __term = ""
-    __factor = ""
-    __sub_have_decl = 0
-    __variable_type = ""
-    __expression_type = ""
-    __simple_expr_type = ""
-    __term_type = ""
-    __factor_type = ""
-    __have_error = 0
-    __write_control_form = ""
-    __if_write = 0
+    def __init__(self):
+        self.__id_list = []  ##记录identifier_list中遍历过的ID
+        self.__id_type = ""  ##记录访问type时的ID类型
+        self.__id_range_low = 0 ##记录数据类型的下界
+        self.__id_range_high = 0 
+        self.__sym_table = []   ##符号表
+        self.__sym_table_temp = []  ##临时符号表
+        self.__temp = {}    ##用于插入符号表前的临时dict
+        self.__depth = 0;   ##进入符号表的深度
+        self.__start_sub = 0; ##记录子函数是否已经开始
+        self.__expression = ""  ##似乎没有用到?
+        self.__simple_expr = "" ##似乎没有用到?
+        self.__term = ""
+        self.__factor = ""
+        self.__sub_have_decl = 0 ##记录子函数是否有变量定义，主要用于判断子函数中{符号的位置
+        self.__variable_type = "" #记录variable的类型
+        self.__expression_type = "" #记录expression的类型
+        self.__simple_expr_type = ""
+        self.__term_type = ""
+        self.__factor_type = ""
+        self.__have_error = 0 #没有用到
+        self.__write_control_form = "" #没有用到
+        self.__if_write = 0   
 
-    def del_sub_pra(self):
+    def del_sub_pra(self): #用于在退出函数后将变量list清空
         if "list" in self.__sym_table[-1]:
             if self.__sym_table[-1]["list"]:
                 del self.__sym_table[-1]["list"][0:] 
 
-    def search_sub_pra(self, ID):
+    def search_sub_pra(self, ID): #用于在当前的函数中查找变量定义
         if "list" in self.__sym_table[-1]:
             for i in self.__sym_table[-1]["list"]:
                 if i["name"] == ID:
                     return i
         return None
 
-    def search_main_pra(self, ID):
+    def search_main_pra(self, ID): #用于在主函数查找变量定义
         for i in self.__sym_table:
             if i["name"] == ID:
                 return i
         return None
 
-    def check_repetition(self, ID):
+    def check_repetition(self, ID): #用于查找变量是否重复定义
         temp = self.__sym_table;
         for i in range(self.__depth):
             temp = temp[-1]["list"];
@@ -57,7 +58,7 @@ class rp2cListener(ParseTreeListener):
         return True
         pass
 
-    def table_insert(self, sym):
+    def table_insert(self, sym): #用于将变量根据深度depth插入符号表中
         temp = self.__sym_table;
         for i in range(self.__depth):
             temp = temp[-1]["list"];
@@ -66,7 +67,7 @@ class rp2cListener(ParseTreeListener):
         
 
     # Enter a parse tree produced by rp2cParser#program.
-    def enterProgram(self, ctx):
+    def enterProgram(self, ctx): 
         print "#include <iostream>"
         print "#include <stdio.h>"
         print "#include <stdlib.h>"
@@ -90,7 +91,7 @@ class rp2cListener(ParseTreeListener):
     # Enter a parse tree produced by rp2cParser#identifier_list.
     def enterIdentifier_list(self, ctx):
         #print dir(ctx)
-        if "ID" in dir(ctx):
+        if "ID" in dir(ctx):   #如果ID存在，将其插入__id_list中
             self.__id_list.append( ctx.ID().getText() )
         pass
 
@@ -119,8 +120,8 @@ class rp2cListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by rp2cParser#declaration.
-    def enterDeclaration(self, ctx):
-        del self.__id_list[0:]
+    def enterDeclaration(self, ctx): 
+        del self.__id_list[0:] #清空__id_list
         pass
 
     # Exit a parse tree produced by rp2cParser#declaration.
@@ -141,7 +142,7 @@ class rp2cListener(ParseTreeListener):
                     print >>sys.stderr,"重复定义:", self.__id_list[i].encode(), ";before:", ctx.getText()
                     self.__id_list.pop(i)
             if len(self.__id_list) != 0:
-                for i in range(len(self.__id_list)):
+                for i in range(len(self.__id_list)): #存入符号表
                     self.__id_list[i] = self.__id_list[i].encode()
                 self.__temp.clear()
                 self.__temp["name"] = tuple(copy.deepcopy(self.__id_list))
@@ -152,13 +153,14 @@ class rp2cListener(ParseTreeListener):
                 else:
                     self.table_insert(self.__temp)
                 self.__depth += 1;
-                print "struct",
+                
+                print "struct", #翻译部分
                 print self.__id_list[0],
                 for i in self.__id_list[1:]:
                     print ',' , i,
                 print "{"
             
-        elif ctx.getChildCount() == 7:
+        elif ctx.getChildCount() == 7: #array_type
             self.__id_range_high = int(ctx.DIGITS()[1].getText())
             self.__id_range_low = int(ctx.DIGITS()[0].getText())
             #array_type
@@ -216,7 +218,7 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 3:
                 
             self.__depth -= 1;
-            print "}" ##有雷，还在想如何解决:)
+            print "}" ##有雷
         pass
 
 
@@ -254,9 +256,9 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#subprogram_declaration.
     def exitSubprogram_declaration(self, ctx):
         #print "int main()"
-        self.del_sub_pra()
+        self.del_sub_pra() #清空当前子函数的符号表
         self.__sub_have_decl = 0
-        self.__depth -= 1;
+        self.__depth -= 1; #深度depth减1
 
     # Enter a parse tree produced by rp2cParser#subprogram_head.
     def enterSubprogram_head(self, ctx):
@@ -268,7 +270,8 @@ class rp2cListener(ParseTreeListener):
             self.__temp["list"] = []
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
-            if ctx.standard_type().getText() == "integer":
+            
+            if ctx.standard_type().getText() == "integer": #翻译部分
                 print "int",
             elif ctx.standard_type().getText() == "real":
                 print "double",
@@ -283,6 +286,7 @@ class rp2cListener(ParseTreeListener):
             self.__temp["list"] = []
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
+            
             print "void",
             print "%s(" %self.__temp["name"],
             pass
@@ -293,9 +297,9 @@ class rp2cListener(ParseTreeListener):
         if self.__sub_have_decl == 1:
             print '{'
         
-        if ctx.getChildCount() == 6:
+        if ctx.getChildCount() == 6: #funciton:
             self.__sym_table[-1]["return_type"] = self.__id_type
-            print "%s __%s;" %(self.__id_type, self.__sym_table[-1]["name"])
+            print "%s __%s;" %(self.__id_type, self.__sym_table[-1]["name"]) #用于解决c/c++语言与pascal语言函数返回值不同，用__function_name来记录返回值
                               
     # Enter a parse tree produced by rp2cParser#arguments.
     def enterArguments(self, ctx):
@@ -321,8 +325,8 @@ class rp2cListener(ParseTreeListener):
         pass
 
     # Exit a parse tree produced by rp2cParser#parameter_list.
-    def exitParameter_list(self, ctx):
-        if ctx.getChildCount() == 3:
+    def exitParameter_list(self, ctx): 
+        if ctx.getChildCount() == 3: #定义时没有VAR
             self.__id_list.reverse()
             for i in self.__id_list:
                 self.__temp.clear()
@@ -336,7 +340,7 @@ class rp2cListener(ParseTreeListener):
                 else:
                     print ',%s' %self.__temp["type"], i,
             pass
-        elif ctx.getChildCount() == 4:
+        elif ctx.getChildCount() == 4: #定义时有VAR,dict多一个属性option，其中的值赋为VAR
             self.__id_list.reverse()
             for i in self.__id_list:
                 self.__temp.clear()
@@ -365,7 +369,7 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
         print ';'
-        if self.__sym_table[-1]["type"] == "function" and self.__sym_table[-1]["list"]:
+        if self.__sym_table[-1]["type"] == "function" and self.__sym_table[-1]["list"]: #同样用于解决函数返回值的问题
             print "return __%s;" %self.__sym_table[-1]["name"]
         print '}'
         #print self.__sym_table
@@ -391,8 +395,8 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#statement.
     def enterStatement(self, ctx):
-        del self.__id_list[0:]
-        if ctx.identifier_list():
+        del self.__id_list[0:] 
+        if ctx.identifier_list(): 
             print "scanf(",
         elif ctx.write_list():
             self.__write_control_form = ""
@@ -403,7 +407,7 @@ class rp2cListener(ParseTreeListener):
     def exitStatement(self, ctx):
         if ctx.assignop():
             pass
-        if ctx.identifier_list():
+        if ctx.identifier_list(): #read语句
             control_form = ""
             self.__id_list.reverse()
             for i in range(len(self.__id_list)):
@@ -424,7 +428,7 @@ class rp2cListener(ParseTreeListener):
                 if i!= 0 : print ',',
                 print "&%s" %self.__id_list[i],
             print ")",
-        elif ctx.write_list():
+        elif ctx.write_list(): #write语句
             print " << ' '",
         #print ';'
             pass
@@ -441,10 +445,10 @@ class rp2cListener(ParseTreeListener):
             else:
                 print >>sys.stderr
                 print >>sys.stderr, "错误:使用未声明的变量:%s" %ctx.ID().getText().encode()
-            if "option" in sym:
+            if "option" in sym: #用于处理形式参数和实际参数的区别
                 if sym["option"] == "VAR":
                     print "*%s" %ctx.ID().getText().encode(),
-            elif sym["type"] == "function":
+            elif sym["type"] == "function": #用于出来函数返回用法不同的问题
                 print "__%s" %ctx.ID(),
             else:
                 print ctx.ID(),
