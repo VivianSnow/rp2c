@@ -474,10 +474,10 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#variable.
     def exitVariable(self, ctx):
         if ctx.getChildCount() == 4:
-                print ']',
-        if self.__expression_type != "int":
-            print >>sys.stderr
-            print >>sys.stderr, ("错误:数组下标应该是int类型，而不是%s类型") %self.__expression_type
+            print ']',
+            if self.__expression_type != "int":
+                print >>sys.stderr
+                print >>sys.stderr, ("错误:数组下标应该是int类型，而不是%s类型") %self.__expression_type
         pass
 
 
@@ -735,6 +735,9 @@ class rp2cListener(ParseTreeListener):
         # Enter a parse tree produced by rp2cParser#then.
     def enterThen(self, ctx):
         print ')',
+        if self.__expression_type != "int":
+            print >>sys.stderr
+            print >>sys.stderr, "错误:if语句后的表达式应为Boolean类型，而不应是%s类型" %self.__expression_type
         pass
 
     # Exit a parse tree produced by rp2cParser#then.
@@ -755,6 +758,10 @@ class rp2cListener(ParseTreeListener):
     # Enter a parse tree produced by rp2cParser#do.
     def enterDo(self, ctx):
         print ')',
+
+        if self.__expression_type != "int":
+            print >>sys.stderr
+            print >>sys.stderr, "错误:while语句后的表达式应为Boolean类型，而不应是%s类型" %self.__expression_type
         pass
 
     # Exit a parse tree produced by rp2cParser#do.

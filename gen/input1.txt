@@ -21,7 +21,7 @@ begin
 
 end;
 
-function fun1(a, b, c, d : integer; var ffff: integer):integer;
+function fun1(a, b, c, d : integer; var ffff: integer):real;
 var fer : real;
 begin
 end;
@@ -46,10 +46,14 @@ begin
 	ab(a=2);
 	a[2] := 3;
 	cd[2] :=  1;
+	cd := c[fun1(1, 2, 3, 4, 5)];
+	if 2.03 then a := 3 else abbb := 2;
 	while a < b  do 
 	begin
 		a:=2;
 		b:=3
 	end;
-	if a = b then read(a, b, c) else abbbb := 2
+	if a = b then read(a, b, c) else abbbb := 2;
+	if 2.03 then a := 3;
+	while(2.3) do a := a + 1
 end.
