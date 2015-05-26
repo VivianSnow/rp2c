@@ -28,7 +28,9 @@ class rp2cListener(ParseTreeListener):
         self.__factor_type = ""
         self.__have_error = 0 #没有用到
         self.__write_control_form = "" #没有用到
-        self.__if_write = 0   
+        self.__if_write = 0
+	self.__expr_list_num = 0
+        self.__parameter_lists_num = 0
 
     def del_sub_pra(self): #用于在退出函数后将变量list清空
         if "list" in self.__sym_table[-1]:
@@ -294,6 +296,7 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#subprogram_head.
     def exitSubprogram_head(self, ctx):
+        self.__sym_table[-1]["pra_num"] = self.__parameter_lists_num
         if self.__sub_have_decl == 1:
             print '{'
         
@@ -303,6 +306,7 @@ class rp2cListener(ParseTreeListener):
                               
     # Enter a parse tree produced by rp2cParser#arguments.
     def enterArguments(self, ctx):
+        self.__parameter_lists_num = 0
         pass
 
     # Exit a parse tree produced by rp2cParser#arguments.
@@ -334,6 +338,7 @@ class rp2cListener(ParseTreeListener):
                 self.__temp["type"] = self.__id_type
                 self.table_insert(self.__temp)
             for i in self.__id_list:
+                self.__parameter_lists_num += 1;
                 if self.__start_sub == 0:
                     self.__start_sub = 1;
                     print self.__temp["type"], i,
@@ -343,6 +348,7 @@ class rp2cListener(ParseTreeListener):
         elif ctx.getChildCount() == 4: #定义时有VAR,dict多一个属性option，其中的值赋为VAR
             self.__id_list.reverse()
             for i in self.__id_list:
+                self.__parameter_lists_num += 1;
                 self.__temp.clear()
                 self.__temp["name"] = i.encode()
                 self.__temp["type"] = self.__id_type
@@ -448,7 +454,7 @@ class rp2cListener(ParseTreeListener):
             if "option" in sym: #用于处理形式参数和实际参数的区别
                 if sym["option"] == "VAR":
                     print "*%s" %ctx.ID().getText().encode(),
-            elif sym["type"] == "function": #用于出来函数返回用法不同的问题
+            elif "type" in sym and sym["type"] == "function":          #用于出来函数返回用法不同的问题
                 print "__%s" %ctx.ID(),
             else:
                 print ctx.ID(),
@@ -461,7 +467,6 @@ class rp2cListener(ParseTreeListener):
                     else:
                         print >>sys.stderr
                         print >>sys.stderr, "错误:变量%s不是一个数组类型" %ctx.ID().getText().encode()
-                        print '[',
             if sym :
                 self.__varable_type = sym["type"]
         pass
@@ -475,6 +480,8 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#procedure_call_statement.
     def enterProcedure_call_statement(self, ctx):
+        
+        self.__expr_list_num = 0
         if ctx.ID:
             print "%s(" %ctx.ID().getText(),
         pass
@@ -482,6 +489,15 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#procedure_call_statement.
     def exitProcedure_call_statement(self, ctx):
         print ")",
+
+        pra_num = 0
+        if ctx.ID:
+            for i in self.__sym_table:
+                if i["name"] == ctx.ID().getText().encode():
+                    pra_num = i["pra_num"]
+        if (self.__expr_list_num +1 != pra_num):
+            print >>sys.stderr
+            print >>sys.stderr, "调用过程%s时输入的参数个数不正确，应该输入%d个，输入了%d个" %(ctx.ID().getText().encode(), pra_num, self.__expr_list_num +1)
         pass
 
 
@@ -578,6 +594,7 @@ class rp2cListener(ParseTreeListener):
                     
             if ctx.getChildCount() ==4:
                 if ctx.expr_list():
+                    self.__expr_list_num = 0
                     print '%s(' %ctx.ID().getText().encode(),
                         
                 elif ctx.expression():
@@ -615,7 +632,7 @@ class rp2cListener(ParseTreeListener):
             if ctx.getChildCount() ==4:
                 if ctx.expr_list():
                     print')',
-                    
+                                                                             
                     if self.search_main_pra(ctx.ID().getText().encode()):
                         sym = self.search_main_pra(ctx.ID().getText().encode())
                     if "type" in sym:
@@ -626,7 +643,11 @@ class rp2cListener(ParseTreeListener):
                             return
                         elif "return_type" in sym:
                             self.__factor_type = sym["return_type"]
-                    
+                            
+                    if ("pra_num" in sym) and (self.__expr_list_num +1 != sym["pra_num"]):
+                        print >>sys.stderr
+                        print >>sys.stderr, "调用函数%s时输入的参数个数不正确，应该输入%d个，输入了%d个" %(sym["name"], sym["pra_num"], self.__expr_list_num +1)
+                        
                 elif ctx.expression():
                     print']',
                     if sym:
@@ -729,6 +750,7 @@ class rp2cListener(ParseTreeListener):
 
        # Enter a parse tree produced by rp2cParser#douhao.
     def enterDouhao(self, ctx):
+        self.__expr_list_num += 1
         print ',',
 
     # Exit a parse tree produced by rp2cParser#douhao.
