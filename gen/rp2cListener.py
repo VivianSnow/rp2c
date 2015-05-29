@@ -493,11 +493,18 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#procedure_call_statement.
     def enterProcedure_call_statement(self, ctx):
-        
         self.__expr_list_num = 0
         if ctx.ID:
             print "%s(" %ctx.ID().getText(),
-        pass
+            
+        for i in self.__sym_table:
+                if i["name"] == ctx.ID().getText().encode():
+                    sym = i
+        if sym and "pra_type" in sym:
+            self.__pra_type_list = sym["pra_type"]
+            if self.__pra_type_list:
+                if self.__pra_type_list[0] == "VAR" :
+                    print "&",	
 
     # Exit a parse tree produced by rp2cParser#procedure_call_statement.
     def exitProcedure_call_statement(self, ctx):
@@ -517,7 +524,7 @@ class rp2cListener(ParseTreeListener):
             else:                                   
                 print >>sys.stderr
                 print >> sys.stderr, "错误: 过程%s不存在" %ctx.ID().getText().encode()
-                
+        del self.__pra_type_list[:]
         pass
 
 
@@ -536,9 +543,6 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#expression.
     def enterExpression(self, ctx):
-        if self.__pra_type_list:
-            if self.__pra_type_list[self.__expr_list_num] == "VAR":
-                print "&",
         pass
 
     # Exit a parse tree produced by rp2cParser#expression.
@@ -625,6 +629,9 @@ class rp2cListener(ParseTreeListener):
                     if "pra_type" in sym:
                         self.__pra_type_list = sym["pra_type"]
                     print '%s(' %ctx.ID().getText().encode(),
+                    if self.__pra_type_list:
+                        if self.__pra_type_list[0] == "VAR" :
+                            print "&",	
                         
                 elif ctx.expression(): ##ID[]
                     print '%s[' %ctx.ID().getText().encode(),
@@ -794,7 +801,10 @@ class rp2cListener(ParseTreeListener):
     def enterDouhao(self, ctx):
         self.__expr_list_num += 1
         print ',',
-
+        if self.__pra_type_list:
+            if self.__pra_type_list[self.__expr_list_num] == "VAR" :
+                print "&",
+            
     # Exit a parse tree produced by rp2cParser#douhao.
     def exitDouhao(self, ctx):
         pass
