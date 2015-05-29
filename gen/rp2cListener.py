@@ -28,9 +28,10 @@ class rp2cListener(ParseTreeListener):
         self.__factor_type = ""
         self.__have_error = 0 #没有用到
         self.__write_control_form = "" #没有用到
-        self.__if_write = 0
-	self.__expr_list_num = 0
+        self.__if_write = 0 
+	self.__expr_list_num = 0 ##用于记录是expr_list里的第几个
         self.__parameter_lists_num = 0
+        self.__pra_type_list = []
 
     def del_sub_pra(self): #用于在退出函数后将变量list清空
         if "list" in self.__sym_table[-1]:
@@ -270,6 +271,7 @@ class rp2cListener(ParseTreeListener):
             self.__temp["name"] = ctx.ID().getText().encode()
             self.__temp["type"] = "function"
             self.__temp["list"] = []
+            self.__temp["pra_type"] = []
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
             
@@ -286,6 +288,7 @@ class rp2cListener(ParseTreeListener):
             self.__temp["name"] = ctx.ID().getText().encode()
             self.__temp["type"] = "procedure"
             self.__temp["list"] = []
+            self.__temp["pra_type"] = []
             self.__sym_table.append(self.__temp.copy())
             self.__depth += 1;
             
@@ -303,6 +306,7 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 6: #funciton:
             self.__sym_table[-1]["return_type"] = self.__id_type
             print "%s __%s;" %(self.__id_type, self.__sym_table[-1]["name"]) #用于解决c/c++语言与pascal语言函数返回值不同，用__function_name来记录返回值
+            ##print self.__sym_table[-1] ##############################################################
                               
     # Enter a parse tree produced by rp2cParser#arguments.
     def enterArguments(self, ctx):
@@ -337,6 +341,7 @@ class rp2cListener(ParseTreeListener):
                 self.__temp["name"] = i.encode()
                 self.__temp["type"] = self.__id_type
                 self.table_insert(self.__temp)
+                self.__sym_table[-1]["pra_type"].append("NOR");
             for i in self.__id_list:
                 self.__parameter_lists_num += 1;
                 if self.__start_sub == 0:
@@ -354,6 +359,7 @@ class rp2cListener(ParseTreeListener):
                 self.__temp["type"] = self.__id_type
                 self.__temp["option"] = "VAR"
                 self.table_insert(self.__temp)
+                self.__sym_table[-1]["pra_type"].append("VAR");
             for i in self.__id_list:
                 if self.__start_sub == 0:
                     self.__start_sub = 1;
@@ -530,6 +536,9 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#expression.
     def enterExpression(self, ctx):
+        if self.__pra_type_list:
+            if self.__pra_type_list[self.__expr_list_num] == "VAR":
+                print "&",
         pass
 
     # Exit a parse tree produced by rp2cParser#expression.
@@ -596,22 +605,28 @@ class rp2cListener(ParseTreeListener):
                 print >>sys.stderr
                 print >>sys.stderr, "错误:使用未声明的变量:%s" %ctx.ID().getText().encode()
                 
-            if ctx.getChildCount() ==1:
+            if ctx.getChildCount() ==1: ## ID
                 if "option" in sym:
                     if sym["option"] == "VAR":
                         print "*%s" %ctx.ID().getText().encode(),
                         self.__factor_type = sym["type"]
+                elif sym["type"] == "function":
+                    print "__%s" %ctx.ID().getText().encode(),
+                    self.__factor_type = sym["return_type"]
                 else :
                     print ctx.ID(),
                     if sym:
                         self.__factor_type = sym["type"]
                     
-            if ctx.getChildCount() ==4:
-                if ctx.expr_list():
+            if ctx.getChildCount() ==4: 
+                if ctx.expr_list(): ##ID()
                     self.__expr_list_num = 0
+                    del self.__pra_type_list[:]
+                    if "pra_type" in sym:
+                        self.__pra_type_list = sym["pra_type"]
                     print '%s(' %ctx.ID().getText().encode(),
                         
-                elif ctx.expression():
+                elif ctx.expression(): ##ID[]
                     print '%s[' %ctx.ID().getText().encode(),
         elif ctx.NUM():
             print ctx.NUM().getText(),
@@ -646,6 +661,8 @@ class rp2cListener(ParseTreeListener):
             if ctx.getChildCount() ==4:
                 if ctx.expr_list():
                     print')',
+
+                    del self.__pra_type_list[:] #####################################################
                                                                              
                     if self.search_main_pra(ctx.ID().getText().encode()):
                         sym = self.search_main_pra(ctx.ID().getText().encode())
