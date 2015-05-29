@@ -8,6 +8,7 @@ begin
 end;
 
 begin
+	x  := 2.0;
 	read(x, y);
 	write(gcd(x,y))
 end.

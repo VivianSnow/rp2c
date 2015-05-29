@@ -412,7 +412,9 @@ class rp2cListener(ParseTreeListener):
     # Exit a parse tree produced by rp2cParser#statement.
     def exitStatement(self, ctx):
         if ctx.assignop():
-            pass
+            if self.__variable_type != self.__expression_type:
+                print >>sys.stderr
+                print >>sys.stderr,"错误：赋值号两侧类型不同,左侧为%s类型，右侧为%s类型" %(self.__variable_type, self.__expression_type)
         if ctx.identifier_list(): #read语句
             control_form = ""
             self.__id_list.reverse()
@@ -454,10 +456,14 @@ class rp2cListener(ParseTreeListener):
             if "option" in sym: #用于处理形式参数和实际参数的区别
                 if sym["option"] == "VAR":
                     print "*%s" %ctx.ID().getText().encode(),
+					
+		    self.__variable_type = sym["type"]
             elif "type" in sym and sym["type"] == "function":          #用于出来函数返回用法不同的问题
                 print "__%s" %ctx.ID(),
+		self.__variable_type = sym["return_type"]
             else:
                 print ctx.ID(),
+		self.__variable_type = sym["type"]
                 
             if ctx.getChildCount() == 4:
                 print '[',
@@ -467,8 +473,6 @@ class rp2cListener(ParseTreeListener):
                     else:
                         print >>sys.stderr
                         print >>sys.stderr, "错误:变量%s不是一个数组类型" %ctx.ID().getText().encode()
-            if sym :
-                self.__varable_type = sym["type"]
         pass
 
     # Exit a parse tree produced by rp2cParser#variable.
@@ -503,7 +507,7 @@ class rp2cListener(ParseTreeListener):
                     print >>sys.stderr, "错误: %s不是一个过程，而是一个%s类型" %(ctx.ID().getText().encode(), sym["type"])
                 elif self.__expr_list_num +1 != sym["pra_num"]:
                     print >>sys.stderr
-                    print >>sys.stderr, "错误：调用过程%s时输入的参数个数不正确，应该输入%d个，输入了%d个" %(ctx.ID().getText().encode(), pra_num, self.__expr_list_num +1)
+                    print >>sys.stderr, "错误：调用过程%s时输入的参数个数不正确，应该输入%d个，输入了%d个" %(ctx.ID().getText().encode(), sym["pra_num"], self.__expr_list_num +1)
             else:                                   
                 print >>sys.stderr
                 print >> sys.stderr, "错误: 过程%s不存在" %ctx.ID().getText().encode()
@@ -533,7 +537,7 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 1:
             self.__expression_type = self.__simple_expr_type;
         elif ctx.getChildCount() == 3:
-            self.__expression_type == "int"
+            self.__expression_type = "int"
             
 
     # Enter a parse tree produced by rp2cParser#simple_expr.
