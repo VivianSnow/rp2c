@@ -220,7 +220,7 @@ class rp2cListener(ParseTreeListener):
         if ctx.getChildCount() == 3:
                 
             self.__depth -= 1;
-            print "}" ##ÓÐÀ×
+            print "};" ##ÓÐÀ×
         pass
 
 
