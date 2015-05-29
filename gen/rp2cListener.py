@@ -525,6 +525,7 @@ class rp2cListener(ParseTreeListener):
                 print >>sys.stderr
                 print >> sys.stderr, "错误: 过程%s不存在" %ctx.ID().getText().encode()
         del self.__pra_type_list[:]
+        self.__expr_list_num = 0
         pass
 
 

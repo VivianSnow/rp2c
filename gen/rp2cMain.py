@@ -15,10 +15,10 @@ def main(argv):
         print u"Use like this: rp2cMain.py source.pas dest.cpp"
         return
     elif len(argv) == 2:
-        input = FileStream(argv[1])
+        input = FileStream(argv[1].encode())
     elif len(argv) == 3:
-        input = FileStream(argv[1])
-        sys.stdout = open(argv[2], "w")
+        input = FileStream(argv[1].encode())
+        sys.stdout = open(argv[2].encode(), "w")
     #input = FileStream("input.txt")
     lexer = rp2cLexer(input)
     stream = CommonTokenStream(lexer)
