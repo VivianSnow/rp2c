@@ -32,6 +32,7 @@ class rp2cListener(ParseTreeListener):
 	self.__expr_list_num = 0 ##用于记录是expr_list里的第几个
         self.__parameter_lists_num = 0
         self.__pra_type_list = []
+        self.__compound_depth = 0
 
     def del_sub_pra(self): #用于在退出函数后将变量list清空
         if "list" in self.__sym_table[-1]:
@@ -372,6 +373,7 @@ class rp2cListener(ParseTreeListener):
 
     # Enter a parse tree produced by rp2cParser#compound_statement.
     def enterCompound_statement(self, ctx):
+        self.__compound_depth += 1
         if self.__sub_have_decl == 0 :
             print '{'
         else:
@@ -380,8 +382,10 @@ class rp2cListener(ParseTreeListener):
 
     # Exit a parse tree produced by rp2cParser#compound_statement.
     def exitCompound_statement(self, ctx):
+        self.__compound_depth -= 1;
         print ';'
-        if self.__sym_table[-1]["type"] == "function" and self.__sym_table[-1]["list"]: #同样用于解决函数返回值的问题
+        #同样用于解决函数返回值的问题
+        if self.__sym_table[-1]["type"] == "function" and self.__sym_table[-1]["list"] and self.__compound_depth == 0:
             print "return __%s;" %self.__sym_table[-1]["name"]
         print '}'
         #print self.__sym_table
