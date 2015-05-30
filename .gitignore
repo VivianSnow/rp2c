@@ -3,3 +3,4 @@
 *.o
 gen/input_test_5.exe
 *.exe
+*.pyc
