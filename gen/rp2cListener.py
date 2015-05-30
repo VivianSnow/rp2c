@@ -473,7 +473,8 @@ class rp2cListener(ParseTreeListener):
 		self.__variable_type = sym["return_type"]
             else:
                 print ctx.ID(),
-		self.__variable_type = sym["type"]
+                if "type" in sym:
+                    self.__variable_type = sym["type"]
                 
             if ctx.getChildCount() == 4:
                 print '[',
@@ -498,6 +499,7 @@ class rp2cListener(ParseTreeListener):
     # Enter a parse tree produced by rp2cParser#procedure_call_statement.
     def enterProcedure_call_statement(self, ctx):
         self.__expr_list_num = 0
+        sym = {}
         if ctx.ID:
             print "%s(" %ctx.ID().getText(),
             
@@ -807,7 +809,9 @@ class rp2cListener(ParseTreeListener):
         self.__expr_list_num += 1
         print ',',
         if self.__pra_type_list:
-            if self.__pra_type_list[self.__expr_list_num] == "VAR" :
+            if self.__expr_list_num >= len(self.__pra_type_list):
+                return
+            if self.__pra_type_list[self.__expr_list_num]== "VAR" :
                 print "&",
             
     # Exit a parse tree produced by rp2cParser#douhao.
