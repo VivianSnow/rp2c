@@ -1,2 +1,3 @@
-# sister-in-law-plan
-就是干
+# rp2c
+
+A translator from reduced pascal to c
